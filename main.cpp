@@ -24,7 +24,7 @@ Block Blocks[BLOCKS_NUM];
 
 
 /*****各类显示*****/
-void showStatusText(TCHAR t[128])
+void showText(TCHAR t[128], int x, int y)
 {
 	settextcolor(WHITE);//设置文字颜色：白色
 	LOGFONT f;//定义字体配置
@@ -33,9 +33,10 @@ void showStatusText(TCHAR t[128])
 	wcscpy_s(f.lfFaceName, _T("微软雅黑"));//配置字体
 	f.lfQuality = ANTIALIASED_QUALITY;//设置为抗锯齿效果
 	settextstyle(&f);//设置文字输出字体为刚刚定义的字体
-	outtextxy(10, 10, t);
-	outtextxy(10, 30, L"By Yzl3014");
+	outtextxy(x, y, t);
+	//outtextxy(10, 30, L"By Yzl3014");
 }
+
 void makeBlocks()
 {
 	cleardevice();
@@ -83,7 +84,7 @@ void show()
 	swprintf_s(s, _T("%s排序 | 数据量：%d | 移动次数：%d | 读取次数：%d | 耗时：%.3fs")
 		, sortName, BLOCKS_NUM, moveNum, readNum, nowLast);
 	//需要注意：上方函数中第二个参数需要传递[wchar_t]或者其指针，否则显示乱码或直接报错！
-	showStatusText(s);
+	showText(s, 10, 10);
 	FlushBatchDraw();
 	Sleep(WAIT);
 }
@@ -155,6 +156,7 @@ void quickSort(int start, int end) {
 		if (i < j)move(i, j);//如果i<j则互换数值，然后重复上方操作，直到“指针碰撞”。
 	}//此时i,j在同一位置，即基准值的正确位置。
 	move(pivot, i);//按照算法，交换基准值和“碰撞”值。
+	Blocks[i].status = 10;//此时i,j,pivot在同一位置，所以将i设置为已完成。pivot始终不变。
 	//本程序采用递归式快速排序！
 	quickSort(start, i - 1);//首先排序本次已完成的数值（即基准值）左侧
 	quickSort(i + 1, end);//然后是右侧的。
@@ -168,13 +170,6 @@ void startQuickSort()
 	quickSort(0, BLOCKS_NUM - 1);//本程序采用递归式快速排序，所以请到该函数查看算法
 
 	endClock = clock();//结束计时
-	for (int i = 0; i <= BLOCKS_NUM - 2; i = i + 2)
-	{
-		//排序已完成，将所有数值状态改为完成。
-		Blocks[i].status = 10;
-		Blocks[i + 1].status = 10;
-		show();
-	}
 }
 void startSelectionSort()//选择排序
 {
@@ -240,7 +235,7 @@ INIT:
 	/*显示左上角菜单*/
 	TCHAR s[128];
 	swprintf_s(s, _T("按键菜单：b冒泡排序 | s选择排序 | i插入排序 | q快速排序 | 0重置为最差情况"));
-	showStatusText(s);
+	showText(s, WIDTH / 2 - 250, 0);
 	FlushBatchDraw();//前面已经开始批量绘制，现在想显示必须flush
 	char ch = _getch(), temp;
 	if (ch == 'b') {
